@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Laporan Pekerjaan & Logistik</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex flex-col">
+
+    <!-- Top Navigation -->
+    <header class="bg-indigo-700 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-xl shadow">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">WorkLog & Order Pro</h1>
+                    <p class="text-xs text-indigo-200">Sistem Laporan, Pengecekan & Order Barang</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="openGitHubModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 border border-indigo-500">
+                    <i class="fa-brands fa-github text-lg"></i>
+                    <span class="hidden sm:inline">Panduan GitHub</span>
+                </button>
+                <div class="text-right hidden md:block">
+                    <p class="text-xs text-indigo-200">Login sebagai:</p>
+                    <p class="text-sm font-semibold">Administrator</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col no-print">
+            <div class="p-4 border-b border-slate-100">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Menu Utama</p>
+            </div>
+            <nav class="flex-1 p-3 space-y-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition bg-indigo-50 text-indigo-700">
+                    <i class="fa-solid fa-chart-pie w-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('reports')" id="nav-reports" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-file-lines w-5"></i>
+                    <span>Laporan Pekerjaan</span>
+                </button>
+                <button onclick="switchTab('inspections')" id="nav-inspections" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-clipboard-list w-5"></i>
+                    <span>Pengecekan (Checklist)</span>
+                </button>
+                <button onclick="switchTab('orders')" id="nav-orders" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-cart-shopping w-5"></i>
+                    <span>Order Barang</span>
+                </button>
+            </nav>
+            <div class="p-4 border-t border-slate-100 text-xs text-slate-400 text-center">
+                v1.0.0 • LocalStorage Active
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+            
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Dashboard Ringkasan</h2>
+                        <p class="text-sm text-slate-500">Statistik operasional harian pekerjaan, pengecekan, dan order.</p>
+                    </div>
+                    <button onclick="loadDashboardStats()" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+                    </button>
+                </div>
+
+                <!-- Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase">Total Laporan Pekerjaan</p>
+                            <h3 id="stat-reports" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        </div>
+                        <div class="bg-blue-50 text-blue-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase">Pengecekan Alat</p>
+                            <h3 id="stat-inspections" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        </div>
+                        <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase">Order Barang Aktif</p>
+                            <h3 id="stat-orders" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        </div>
+                        <div class="bg-amber-50 text-amber-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase">Status Sistem</p>
+                            <h3 class="text-xl font-bold text-emerald-600 mt-1 flex items-center">
+                                <span class="w-3 h-3 bg-emerald-500 rounded-full inline-block mr-2 animate-pulse"></span> Online
+                            </h3>
+                        </div>
+                        <div class="bg-purple-50 text-purple-600 p-3 rounded-xl text-xl">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Recent Logs -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center justify-between">
+                            <span>Aktivitas & Laporan Terbaru</span>
+                            <button onclick="switchTab('reports')" class="text-xs text-indigo-600 hover:underline">Lihat Semua</button>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-100 text-slate-700 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3 rounded-l-lg">Tanggal</th>
+                                        <th class="p-3">Judul Pekerjaan</th>
+                                        <th class="p-3">Petugas</th>
+                                        <th class="p-3 rounded-r-lg">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-reports-table" class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td colspan="4" class="p-4 text-center text-slate-400">Belum ada data laporan.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-800 mb-4">Aksi Cepat</h3>
+                            <div class="space-y-3">
+                                <button onclick="switchTab('reports'); openReportModal();" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Buat Laporan Baru</span>
+                                </button>
+                                <button onclick="switchTab('inspections'); openInspectionModal();" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                    <span>Catat Pengecekan Alat</span>
+                                </button>
+                                <button onclick="switchTab('orders'); openOrderModal();" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-cart-plus"></i>
+                                    <span>Buat Order Barang</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 bg-indigo-50/50 p-4 rounded-xl">
+                            <h4 class="font-semibold text-indigo-900 text-xs uppercase mb-1">Tips GitHub</h4>
+                            <p class="text-xs text-indigo-700">Simpan file ini ke repository GitHub Anda agar bisa diakses kapan saja via GitHub Pages.</p>
+                            <button onclick="openGitHubModal()" class="mt-2 text-xs font-bold text-indigo-600 hover:underline flex items-center">
+                                Baca Panduan <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: LAPORAN PEKERJAAN -->
+            <section id="tab-reports" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Laporan Pekerjaan Harian</h2>
+                        <p class="text-sm text-slate-500">Catat dan kelola progress atau hasil pekerjaan di lapangan.</p>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <input type="text" id="search-report" onkeyup="filterReports()" placeholder="Cari laporan..." class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:w-64">
+                        <button onclick="openReportModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 whitespace-nowrap">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Tambah Laporan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reports Table Card -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-100 text-slate-700 uppercase text-xs">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Judul Pekerjaan</th>
+                                    <th class="p-3">Lokasi</th>
+                                    <th class="p-3">Petugas</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body" class="divide-y divide-slate-100">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: PENGECEKAN / CHECKLIST -->
+            <section id="tab-inspections" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Pengecekan & Checklist Alat</h2>
+                        <p class="text-sm text-slate-500">Form pemeriksaan kondisi perangkat, mesin, atau inventaris.</p>
+                    </div>
+                    <button onclick="openInspectionModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Tambah Pengecekan</span>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-100 text-slate-700 uppercase text-xs">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Nama Alat / Unit</th>
+                                    <th class="p-3">Pemeriksa</th>
+                                    <th class="p-3">Kondisi</th>
+                                    <th class="p-3">Catatan</th>
+                                    <th class="p-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inspections-table-body" class="divide-y divide-slate-100">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: ORDER BARANG -->
+            <section id="tab-orders" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Permintaan & Order Barang</h2>
+                        <p class="text-sm text-slate-500">Kelola daftar kebutuhan material atau suku cadang.</p>
+                    </div>
+                    <button onclick="openOrderModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Buat Order Baru</span>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-100 text-slate-700 uppercase text-xs">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Nama Barang</th>
+                                    <th class="p-3">Jumlah</th>
+                                    <th class="p-3">Pemohon</th>
+                                    <th class="p-3">Status Order</th>
+                                    <th class="p-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="divide-y divide-slate-100">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL: LAPORAN PEKERJAAN -->
+    <div id="report-modal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+            <div class="bg-indigo-700 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="report-modal-title" class="font-bold text-lg">Tambah Laporan Pekerjaan</h3>
+                <button onclick="closeReportModal()" class="text-indigo-200 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="report-form" onsubmit="saveReport(event)" class="p-6 space-y-4">
+                <input type="hidden" id="report-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal</label>
+                    <input type="date" id="report-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Judul Pekerjaan</label>
+                    <input type="text" id="report-title" required placeholder="Contoh: Perbaikan panel listrik lantai 2" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Lokasi</label>
+                        <input type="text" id="report-location" required placeholder="Contoh: Gedung A" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Petugas / Pelapor</label>
+                        <input type="text" id="report-author" required placeholder="Nama Anda" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status</label>
+                    <select id="report-status" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="Selesai">Selesai</option>
+                        <option value="Dalam Proses">Dalam Proses</option>
+                        <option value="Tertunda">Tertunda</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail / Deskripsi Pekerjaan</label>
+                    <textarea id="report-desc" rows="4" required placeholder="Uraikan pekerjaan yang dilakukan..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeReportModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm">Simpan Laporan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: PENGECEKAN ALAT -->
+    <div id="inspection-modal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+            <div class="bg-emerald-700 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Catat Pengecekan Alat</h3>
+                <button onclick="closeInspectionModal()" class="text-emerald-200 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="inspection-form" onsubmit="saveInspection(event)" class="p-6 space-y-4">
+                <input type="hidden" id="inspection-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal</label>
+                    <input type="date" id="inspection-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Alat / Unit</label>
+                    <input type="text" id="inspection-item" required placeholder="Contoh: Genset Utama 500KVA" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pemeriksa</label>
+                        <input type="text" id="inspection-checker" required placeholder="Nama Teknisi" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kondisi</label>
+                        <select id="inspection-condition" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="Baik">Baik / Normal</option>
+                            <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+                            <option value="Rusak Total">Rusak Total</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Catatan Pengecekan</label>
+                    <textarea id="inspection-notes" rows="3" required placeholder="Hasil pemeriksaan fisik/fungsi..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeInspectionModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm">Simpan Pengecekan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ORDER BARANG -->
+    <div id="order-modal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+            <div class="bg-amber-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Form Order Barang</h3>
+                <button onclick="closeOrderModal()" class="text-amber-100 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="order-form" onsubmit="saveOrder(event)" class="p-6 space-y-4">
+                <input type="hidden" id="order-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal</label>
+                    <input type="date" id="order-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Barang</label>
+                    <input type="text" id="order-item-name" required placeholder="Contoh: Oli Mesin 10L / Baut M12" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jumlah</label>
+                        <input type="text" id="order-qty" required placeholder="Contoh: 5 Jerigen" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pemohon</label>
+                        <input type="text" id="order-requester" required placeholder="Nama Anda" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Order</label>
+                    <select id="order-status" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="Diajukan">Diajukan</option>
+                        <option value="Disetujui">Disetujui</option>
+                        <option value="Diterima / Selesai">Diterima / Selesai</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeOrderModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium shadow-sm">Simpan Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: GITHUB INSTRUCTIONS -->
+    <div id="github-modal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center"><i class="fa-brands fa-github mr-2"></i> Panduan Hosting ke GitHub</h3>
+                <button onclick="closeGitHubModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 text-sm text-slate-600">
+                <p>Ikuti langkah-langkah mudah di bawah ini agar aplikasi ini terhubung ke akun GitHub Anda dan dapat diakses secara online:</p>
+                
+                <div class="space-y-3">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-1">Langkah 1: Salin Kode Aplikasi</h4>
+                        <p class="text-xs text-slate-500 mb-2">Simpan seluruh kode file HTML ini (salin semua teks dari editor). Anda bisa menyimpannya sebagai file bernama <code class="bg-slate-200 px-1 py-0.5 rounded font-mono text-slate-700">index.html</code> di komputer Anda.</p>
+                        <button onclick="copyAppCode()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded text-xs font-medium transition flex items-center space-x-1">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>Salin Kode HTML</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-1">Langkah 2: Buat Repository Baru di GitHub</h4>
+                        <ol class="list-decimal list-inside space-y-1 text-xs text-slate-600">
+                            <li>Buka <a href="https://github.com" target="_blank" class="text-indigo-600 underline">GitHub.com</a> dan login ke akun Anda.</li>
+                            <li>Klik tombol <strong class="text-slate-800">New</strong> di pojok kiri atas untuk membuat repository baru.</li>
+                            <li>Beri nama repository (misal: <code class="bg-slate-200 px-1 py-0.5 rounded font-mono text-slate-700">laporan-kerja</code>).</li>
+                            <li>Pilih opsi <strong class="text-slate-800">Public</strong> agar GitHub Pages dapat mengaktifkannya secara gratis.</li>
+                            <li>Klik <strong class="text-slate-800">Create repository</strong>.</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-1">Langkah 3: Unggah File <code class="font-mono">index.html</code></h4>
+                        <ol class="list-decimal list-inside space-y-1 text-xs text-slate-600">
+                            <li>Di halaman repository Anda, klik tautan <strong class="text-slate-800">upload an existing file</strong>.</li>
+                            <li>Tarik dan letakkan (drag & drop) file <code class="bg-slate-200 px-1 py-0.5 rounded font-mono text-slate-700">index.html</code> yang sudah Anda simpan.</li>
+                            <li>Klik tombol hijau <strong class="text-slate-800">Commit changes</strong>.</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-1">Langkah 4: Aktifkan GitHub Pages</h4>
+                        <ol class="list-decimal list-inside space-y-1 text-xs text-slate-600">
+                            <li>Buka tab <strong class="text-slate-800">Settings</strong> di repository Anda.</li>
+                            <li>Di menu sebelah kiri, klik <strong class="text-slate-800">Pages</strong>.</li>
+                            <li>Pada bagian <em>Build and deployment</em> -> <em>Branch</em>, pilih <code class="bg-slate-200 px-1.5 py-0.5 rounded font-mono">main</code> (atau <code class="bg-slate-200 px-1.5 py-0.5 rounded font-mono">master</code>) dan folder <code class="bg-slate-200 px-1.5 py-0.5 rounded font-mono">/ (root)</code>.</li>
+                            <li>Klik <strong class="text-slate-800">Save</strong>.</li>
+                            <li>Tunggu 1-2 menit, link website Anda akan muncul (biasanya <code class="text-indigo-600">https://username.github.io/laporan-kerja/</code>).</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-100 px-6 py-3 flex justify-end">
+                <button onclick="closeGitHubModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State Management stored in localStorage
+        let reports = JSON.parse(localStorage.getItem('app_reports')) || [
+            { id: '1', date: '2026-06-01', title: 'Perbaikan AC Ruang Server', location: 'Gedung Utama Lt. 3', author: 'Budi Santoso', status: 'Selesai', desc: 'Penggantian kapasitor compressor AC yang rusak dan pembersihan filter.' },
+            { id: '2', date: '2026-06-02', title: 'Pengecekan Jaringan LAN', location: 'Kantor Cabang', author: 'Ahmad Fauzi', status: 'Dalam Proses', desc: 'Penarikan kabel UTP baru untuk penambahan meja staff.' }
+        ];
+
+        let inspections = JSON.parse(localStorage.getItem('app_inspections')) || [
+            { id: '1', date: '2026-06-02', item: 'Genset Utama 250KVA', checker: 'Joko Widodo', condition: 'Baik', notes: 'Level oli normal, aki siap starter.' }
+        ];
+
+        let orders = JSON.parse(localStorage.getItem('app_orders')) || [
+            { id: '1', date: '2026-06-02', itemName: 'Kabel UTP Cat6 (1 Roll)', qty: '2 Roll', requester: 'Ahmad Fauzi', status: 'Disetujui' }
+        ];
+
+        // Set default date to today in modals
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('report-date').value = today;
+            document.getElementById('inspection-date').value = today;
+            document.getElementById('order-date').value = today;
+
+            renderAll();
+        });
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            // Update Nav styling
+            ['dashboard', 'reports', 'inspections', 'orders'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (t === tabName) {
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition bg-indigo-50 text-indigo-700";
+                } else {
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+                }
+            });
+        }
+
+        // Render All Data
+        function renderAll() {
+            renderDashboardStats();
+            renderReports();
+            renderInspections();
+            renderOrders();
+        }
+
+        // Dashboard Stats
+        function renderDashboardStats() {
+            document.getElementById('stat-reports').innerText = reports.length;
+            document.getElementById('stat-inspections').innerText = inspections.length;
+            document.getElementById('stat-orders').innerText = orders.length;
+
+            const tbody = document.getElementById('recent-reports-table');
+            if (reports.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada data laporan.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            reports.slice(-5).reverse().forEach(r => {
+                let badgeColor = 'bg-blue-100 text-blue-700';
+                if (r.status === 'Selesai') badgeColor = 'bg-emerald-100 text-emerald-700';
+                if (r.status === 'Tertunda') badgeColor = 'bg-amber-100 text-amber-700';
+
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium">${r.date}</td>
+                        <td class="p-3 text-slate-800 font-medium">${r.title}</td>
+                        <td class="p-3">${r.author}</td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}">${r.status}</span></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // --- REPORTS LOGIC ---
+        function openReportModal(id = null) {
+            document.getElementById('report-modal').classList.remove('hidden');
+            if (id) {
+                document.getElementById('report-modal-title').innerText = 'Edit Laporan Pekerjaan';
+                const rep = reports.find(r => r.id == id);
+                if (rep) {
+                    document.getElementById('report-id').value = rep.id;
+                    document.getElementById('report-date').value = rep.date;
+                    document.getElementById('report-title').value = rep.title;
+                    document.getElementById('report-location').value = rep.location;
+                    document.getElementById('report-author').value = rep.author;
+                    document.getElementById('report-status').value = rep.status;
+                    document.getElementById('report-desc').value = rep.desc;
+                }
+            } else {
+                document.getElementById('report-modal-title').innerText = 'Tambah Laporan Pekerjaan';
+                document.getElementById('report-form').reset();
+                document.getElementById('report-id').value = '';
+                document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
+            }
+        }
+        function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+        function saveReport(e) {
+            e.preventDefault();
+            const id = document.getElementById('report-id').value;
+            const data = {
+                id: id ? id : Date.now().toString(),
+                date: document.getElementById('report-date').value,
+                title: document.getElementById('report-title').value,
+                location: document.getElementById('report-location').value,
+                author: document.getElementById('report-author').value,
+                status: document.getElementById('report-status').value,
+                desc: document.getElementById('report-desc').value
+            };
+
+            if (id) {
+                const index = reports.findIndex(r => r.id == id);
+                if (index !== -1) reports[index] = data;
+            } else {
+                reports.push(data);
+            }
+
+            localStorage.setItem('app_reports', JSON.stringify(reports));
+            closeReportModal();
+            renderAll();
+        }
+
+        function deleteReport(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
+                reports = reports.filter(r => r.id != id);
+                localStorage.setItem('app_reports', JSON.stringify(reports));
+                renderAll();
+            }
+        }
+
+        function renderReports(filterText = '') {
+            const tbody = document.getElementById('reports-table-body');
+            const filtered = reports.filter(r => 
+                r.title.toLowerCase().includes(filterText.toLowerCase()) || 
+                r.location.toLowerCase().includes(filterText.toLowerCase()) ||
+                r.author.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Tidak ada data laporan ditemukan.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filtered.reverse().forEach(r => {
+                let badgeColor = 'bg-blue-100 text-blue-700';
+                if (r.status === 'Selesai') badgeColor = 'bg-emerald-100 text-emerald-700';
+                if (r.status === 'Tertunda') badgeColor = 'bg-amber-100 text-amber-700';
+
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium">${r.date}</td>
+                        <td class="p-3">
+                            <div class="font-semibold text-slate-800">${r.title}</div>
+                            <div class="text-xs text-slate-400 truncate max-w-xs">${r.desc}</div>
+                        </td>
+                        <td class="p-3">${r.location}</td>
+                        <td class="p-3">${r.author}</td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}">${r.status}</span></td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="openReportModal('${r.id}')" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteReport('${r.id}')" class="text-red-600 hover:text-red-800 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function filterReports() {
+            const query = document.getElementById('search-report').value;
+            renderReports(query);
+        }
+
+        // --- INSPECTIONS LOGIC ---
+        function openInspectionModal(id = null) {
+            document.getElementById('inspection-modal').classList.remove('hidden');
+            if (id) {
+                const ins = inspections.find(i => i.id == id);
+                if (ins) {
+                    document.getElementById('inspection-id').value = ins.id;
+                    document.getElementById('inspection-date').value = ins.date;
+                    document.getElementById('inspection-item').value = ins.item;
+                    document.getElementById('inspection-checker').value = ins.checker;
+                    document.getElementById('inspection-condition').value = ins.condition;
+                    document.getElementById('inspection-notes').value = ins.notes;
+                }
+            } else {
+                document.getElementById('inspection-form').reset();
+                document.getElementById('inspection-id').value = '';
+                document.getElementById('inspection-date').value = new Date().toISOString().split('T')[0];
+            }
+        }
+        function closeInspectionModal() { document.getElementById('inspection-modal').classList.add('hidden'); }
+
+        function saveInspection(e) {
+            e.preventDefault();
+            const id = document.getElementById('inspection-id').value;
+            const data = {
+                id: id ? id : Date.now().toString(),
+                date: document.getElementById('inspection-date').value,
+                item: document.getElementById('inspection-item').value,
+                checker: document.getElementById('inspection-checker').value,
+                condition: document.getElementById('inspection-condition').value,
+                notes: document.getElementById('inspection-notes').value
+            };
+
+            if (id) {
+                const index = inspections.findIndex(i => i.id == id);
+                if (index !== -1) inspections[index] = data;
+            } else {
+                inspections.push(data);
+            }
+
+            localStorage.setItem('app_inspections', JSON.stringify(inspections));
+            closeInspectionModal();
+            renderAll();
+        }
+
+        function deleteInspection(id) {
+            if (confirm('Hapus catatan pengecekan ini?')) {
+                inspections = inspections.filter(i => i.id != id);
+                localStorage.setItem('app_inspections', JSON.stringify(inspections));
+                renderAll();
+            }
+        }
+
+        function renderInspections() {
+            const tbody = document.getElementById('inspections-table-body');
+            if (inspections.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Belum ada data pengecekan alat.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            inspections.slice().reverse().forEach(i => {
+                let badgeColor = 'bg-emerald-100 text-emerald-700';
+                if (i.condition === 'Perlu Perbaikan') badgeColor = 'bg-amber-100 text-amber-700';
+                if (i.condition === 'Rusak Total') badgeColor = 'bg-red-100 text-red-700';
+
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium">${i.date}</td>
+                        <td class="p-3 font-semibold text-slate-800">${i.item}</td>
+                        <td class="p-3">${i.checker}</td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}">${i.condition}</span></td>
+                        <td class="p-3 text-slate-500">${i.notes}</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="openInspectionModal('${i.id}')" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteInspection('${i.id}')" class="text-red-600 hover:text-red-800 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // --- ORDERS LOGIC ---
+        function openOrderModal(id = null) {
+            document.getElementById('order-modal').classList.remove('hidden');
+            if (id) {
+                const ord = orders.find(o => o.id == id);
+                if (ord) {
+                    document.getElementById('order-id').value = ord.id;
+                    document.getElementById('order-date').value = ord.date;
+                    document.getElementById('order-item-name').value = ord.itemName;
+                    document.getElementById('order-qty').value = ord.qty;
+                    document.getElementById('order-requester').value = ord.requester;
+                    document.getElementById('order-status').value = ord.status;
+                }
+            } else {
+                document.getElementById('order-form').reset();
+                document.getElementById('order-id').value = '';
+                document.getElementById('order-date').value = new Date().toISOString().split('T')[0];
+            }
+        }
+        function closeOrderModal() { document.getElementById('order-modal').classList.add('hidden'); }
+
+        function saveOrder(e) {
+            e.preventDefault();
+            const id = document.getElementById('order-id').value;
+            const data = {
+                id: id ? id : Date.now().toString(),
+                date: document.getElementById('order-date').value,
+                itemName: document.getElementById('order-item-name').value,
+                qty: document.getElementById('order-qty').value,
+                requester: document.getElementById('order-requester').value,
+                status: document.getElementById('order-status').value
+            };
+
+            if (id) {
+                const index = orders.findIndex(o => o.id == id);
+                if (index !== -1) orders[index] = data;
+            } else {
+                orders.push(data);
+            }
+
+            localStorage.setItem('app_orders', JSON.stringify(orders));
+            closeOrderModal();
+            renderAll();
+        }
+
+        function deleteOrder(id) {
+            if (confirm('Hapus order barang ini?')) {
+                orders = orders.filter(o => o.id != id);
+                localStorage.setItem('app_orders', JSON.stringify(orders));
+                renderAll();
+            }
+        }
+
+        function renderOrders() {
+            const tbody = document.getElementById('orders-table-body');
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Belum ada data order barang.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            orders.slice().reverse().forEach(o => {
+                let badgeColor = 'bg-amber-100 text-amber-700';
+                if (o.status === 'Disetujui') badgeColor = 'bg-blue-100 text-blue-700';
+                if (o.status === 'Diterima / Selesai') badgeColor = 'bg-emerald-100 text-emerald-700';
+
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium">${o.date}</td>
+                        <td class="p-3 font-semibold text-slate-800">${o.itemName}</td>
+                        <td class="p-3">${o.qty}</td>
+                        <td class="p-3">${o.requester}</td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}">${o.status}</span></td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="openOrderModal('${o.id}')" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteOrder('${o.id}')" class="text-red-600 hover:text-red-800 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // GitHub Modal Helper
+        function openGitHubModal() { document.getElementById('github-modal').classList.remove('hidden'); }
+        function closeGitHubModal() { document.getElementById('github-modal').classList.add('hidden'); }
+
+        function copyAppCode() {
+            const code = document.documentElement.outerHTML;
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('Kode HTML berhasil disalin ke clipboard! Silakan buat file index.html dan paste kodenya.');
+            } catch (err) {
+                alert('Gagal menyalin kode.');
+            }
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+</html>
